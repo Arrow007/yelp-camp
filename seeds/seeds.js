@@ -31,7 +31,8 @@ const seedDB = async () => {
             location: `${cities[random1000].city}, ${cities[random1000].state}`,
             description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Est corporis similique sed magni possimus repellendus impedit assumenda veritatis nam dolores!',
             price: randomPrice,
-            image: 'https://picsum.photos/1920/1080'
+            image: 'https://picsum.photos/1920/1080',
+            author: '63adcf731a8a70e97184cd9d'
         })
 
         await camp.save();

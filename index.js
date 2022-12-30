@@ -7,6 +7,11 @@ const ejsMate = require('ejs-mate');
 const ExpressError = require('./utilities/ExpressError');
 const port = 3000;
 
+// Passport
+const passport = require('passport');
+const local = require('passport-local');
+const User = require('./models/user');
+
 // Session
 const session = require('express-session');
 const sessionConfig = {
@@ -29,6 +34,7 @@ app.use(flash());
 // Import Routes
 const campgroundsRoutes = require('./routes/campgrounds');
 const reviewsRoutes = require('./routes/reviews');
+const usersRoutes = require('./routes/users');
 
 app.engine('ejs', ejsMate);
 
@@ -38,12 +44,20 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }))
 app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new local(User.authenticate()));
+
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
 app.use((req, res, next) => {
     res.locals.success = req.flash('success');
     res.locals.error = req.flash('error');
+    res.locals.currentUser = req.user;
     next();
 })
-
 // Mongoose
 const mongoose = require('mongoose');
 mongoose.set('strictQuery', false);
@@ -58,6 +72,7 @@ db.once('open', () => {
 // Routes
 app.use('/campgrounds', campgroundsRoutes);
 app.use('/campgrounds/:id/reviews', reviewsRoutes);
+app.use('/', usersRoutes)
 
 app.get('/', (req, res) => {
     res.render('home');

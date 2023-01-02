@@ -2,7 +2,8 @@
 <div class="row">
     <h1 class="text-center">Edit Campground</h1>
     <div class="col-6 offset-3">
-        <form action="/campgrounds/<%= campground._id %>?_method=PUT" method="POST" novalidate class="validated-form">
+        <form action="/campgrounds/<%= campground._id %>?_method=PUT" method="POST" novalidate class="validated-form"
+            enctype="multipart/form-data">
             <div class="mb-3">
                 <label class="form-label" for="title">Title</label>
                 <input class="form-control" type="text" name="campground[title]" id="title" placeholder="Campground"
@@ -31,14 +32,32 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label" for="image">Image</label>
-                <input class="form-control" type="text" name="campground[image]" id="image"
-                    placeholder="https://www.example.com/image/" value="<%= campground.image %>" required>
+                <label class="form-label" for="images">Images</label>
+                <div class="mb-3">
+                    <input type="file" name="image" id="image" class="form-control" multiple>
+                </div>
                 <div class="valid-feedback">Looks good!</div>
             </div>
-            <button class="btn btn-success" type="submit">Update</button>
-            <a class="btn btn-outline-secondary" href="/campgrounds/<%= campground._id %>">&leftarrow; Back to
-                Campground</a>
+
+            <div class="mb-3">
+                <label class="mb-2 d-block">Existing Images</label>
+                <% campground.images.forEach(function(img, i) { %>
+                <div class="d-inline-block me-3">
+                    <img src="<%= img.thumbnail %>" alt="" class="img-thumbnail mb-1">
+                    <div class="form-check mb-3">
+                        <input type="checkbox" name="deleteImages[]" id="image-<%= i %>" class="form-check-input"
+                            value="<%= img.filename %>">
+                        <label for="image-<%= i %>">Delete?</label>
+                    </div>
+                </div>
+                <% }) %>
+            </div>
+
+            <div class="mb-3">
+                <button class="btn btn-success" type="submit">Update</button>
+                <a class="btn btn-outline-secondary" href="/campgrounds/<%= campground._id %>">&leftarrow; Back to
+                    Campground</a>
+            </div>
         </form>
     </div>
 

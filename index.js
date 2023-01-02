@@ -1,3 +1,7 @@
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config();
+}
+
 // Express
 const express = require('express');
 const app = express();
@@ -5,6 +9,10 @@ const path = require('path');
 const methodOverride = require('method-override');
 const ejsMate = require('ejs-mate');
 const ExpressError = require('./utilities/ExpressError');
+const mongoSanitize = require('express-mongo-sanitize');
+const dbURL = process.env.MONGO_URL;
+const localDB = 'mongodb://localhost:27017/yelp-camp'
+const mongoose = require('mongoose');
 const port = 3000;
 
 // Passport
@@ -14,12 +22,40 @@ const User = require('./models/user');
 
 // Session
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
+
+// Mongoose
+mongoose.set('strictQuery', false);
+mongoose.connect(dbURL);
+// mongoose.connect(localDB);
+
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'Connection Error:'));
+db.once('open', () => {
+    console.log('Database connected!');
+});
+
+const store = MongoStore.create({
+    mongoUrl: dbURL,
+    touchAfter: 24 * 60 * 60,
+    crypto: {
+        secret: 'squirrel'
+    }
+});
+
+store.on('error', function (e) {
+    console.log('Sesh store error:', e);
+})
+
 const sessionConfig = {
-    secret: 'secret',
+    store,
+    name: 'sesh',
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
     cookie: {
         httpOnly: true,
+        // secure: true,
         expires: Date.now() + (1000 * 60 * 60 * 24 * 7),
         maxAge: 1000 * 60 * 60 * 24 * 7
     }
@@ -58,16 +94,9 @@ app.use((req, res, next) => {
     res.locals.currentUser = req.user;
     next();
 })
-// Mongoose
-const mongoose = require('mongoose');
-mongoose.set('strictQuery', false);
-mongoose.connect('mongodb://localhost:27017/yelp-camp');
 
-const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'Connection Error:'));
-db.once('open', () => {
-    console.log('Database connected!');
-});
+app.use(mongoSanitize());
+// app.use(helmet())
 
 // Routes
 app.use('/campgrounds', campgroundsRoutes);
